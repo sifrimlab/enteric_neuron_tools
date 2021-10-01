@@ -56,7 +56,8 @@ def subsample(img):
     return img[start_x:start_x+crop_x, start_y:start_y+crop_y]
 
 
-def wide_clusters(img, sigma, pixel_density, min_samples,plot = True):
+# You added output_filename to save the created image 
+def wide_clusters(img, sigma, pixel_density, min_samples,output_filename,plot = True):
 
     grayscale = rgb2gray(img)
     gauss = gaussian(grayscale, sigma=sigma)    
@@ -91,6 +92,7 @@ def wide_clusters(img, sigma, pixel_density, min_samples,plot = True):
         ax[1].imshow(gauss, alpha=0.3)
         ax[1].scatter(local_maxi[:,1], local_maxi[:,0], c=label_plot, cmap = "nipy_spectral")
         ax[1].axis("off")
+        plt.savefig({output_filename})
     
     return (local_maxi, labels, gauss)
 
