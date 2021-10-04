@@ -69,8 +69,7 @@ def load_TIFF(path, opath, serie = 0):
     return(img, directory, meta)
 
 def _new_directory(path, meta):
-
-    directory = str(path)+"/"+"result"+'_'+os.path.splitext(meta["Name"])[0]+'_'+ time.strftime('%m'+'_'+'%d'+'_'+'%Y')
+    directory = os.path.join(str(path), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
     if os.path.exists(directory):
         expand = 0
         while True:

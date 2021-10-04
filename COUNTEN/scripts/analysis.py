@@ -55,7 +55,8 @@ def create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=Fa
     
     if save == True:
         try:
-            df.to_csv(directory+'/'+'{}.csv'.format(os.path.splitext(meta["Name"])[0]))
+            # df.to_csv(directory+'/'+'{}.csv'.format(os.path.splitext(meta["Name"])[0]))
+            df.to_csv(os.path.join(directory, f"{os.path.splitext(meta['Name'])[0]}.csv"))
         except FileNotFoundError:
             df.to_csv('{}.csv'.format(os.path.splitext(meta["Name"])[0]))
             

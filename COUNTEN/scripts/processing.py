@@ -95,8 +95,8 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
         ax[1].axis("off")
         if save:
             try:
-                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.pdf"
-                plt.savefig(directory+'/'+filename, transparent=True)
+                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.png"
+                plt.savefig(os.path.join(directory,filename), transparent=True)
             except IOError:
                 plt.savefig(filename, transparent=True)
                 
@@ -145,8 +145,8 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
                 if save:
                     try:
-                        filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.pdf'
-                        plt.savefig(directory+'/'+filename, transparent=True)
+                        filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.png'
+                        plt.savefig(os.path.join(directory,filename), transparent=True)
                     except IOError:
                         plt.savefig(filename, transparent=True)
                         
@@ -165,8 +165,8 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
             if save:
                     try:
-                        filename = os.path.splitext(meta['Name'])[0]+'.pdf'
-                        plt.savefig(directory+'/'+filename, transparent=True)
+                        filename = os.path.splitext(meta['Name'])[0]+'.png'
+                        plt.savefig(os.path.join(directory,filename), transparent=True)
                     except IOError:
                         plt.savefig(filename, transparent=True)
 
