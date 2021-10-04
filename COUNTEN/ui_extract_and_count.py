@@ -5,7 +5,6 @@ import tkinter as Tk
 from tkinter.filedialog import askopenfilename, askdirectory
 import importlib.util # This is to manually import the scripts to make sure it's all correct
 import matplotlib.pyplot as plt
-from icecream import ic
 import numpy as np
 import aicspylibczi
 from skimage import io
