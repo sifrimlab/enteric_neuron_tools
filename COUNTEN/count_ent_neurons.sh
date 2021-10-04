@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for file in /media/tool/enteric_neurones/ME_distal_18_weeks/extracted/*
+for file in /media/Puzzles/enteric_neurones/ME_distal_18_weeks/extracted/*.tiff
 do
-        python count_ent_neurons.py "$file" /media/tool/enteric_neurones/ME_distal_18_weeks/extracted/output/
+        python count_ent_neurons.py "$file" /media/Puzzles/enteric_neurones/ME_distal_18_weeks/extracted/output/
 done

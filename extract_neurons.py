@@ -8,7 +8,6 @@ from PIL import Image
 from skimage import io
 
 filename = sys.argv[1]
-# filename ="/media/tool/enteric_neurones/ME_distal_12_weeks/10_ME_distal_20X_12WKJune2021_img1.czi" 
 filename_base = os.path.splitext(os.path.basename(filename))[0]
 
 out_dir  =  os.path.dirname(filename)

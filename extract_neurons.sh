@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for file in /media/tool/enteric_neurones/ME_proximal_18_weeks_march/*.czi
+for file in /media/Puzzles/enteric_neurones/ME_prox_18_weeks/*.czi
 do
         python extract_neurons.py "$file"
 done

@@ -1,3 +1,4 @@
+import os
 from skimage.filters import gaussian
 from scipy.ndimage import uniform_filter
 import numpy as np
@@ -57,7 +58,7 @@ def subsample(img):
 
 
 # You added output_filename to save the created image 
-def wide_clusters(img, sigma, pixel_density, min_samples,output_filename,plot = True):
+def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot = True, save=False):
 
     grayscale = rgb2gray(img)
     gauss = gaussian(grayscale, sigma=sigma)    
@@ -92,7 +93,13 @@ def wide_clusters(img, sigma, pixel_density, min_samples,output_filename,plot = 
         ax[1].imshow(gauss, alpha=0.3)
         ax[1].scatter(local_maxi[:,1], local_maxi[:,0], c=label_plot, cmap = "nipy_spectral")
         ax[1].axis("off")
-        plt.savefig({output_filename})
+        if save:
+            try:
+                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.pdf"
+                plt.savefig(directory+'/'+filename, transparent=True)
+            except IOError:
+                plt.savefig(filename, transparent=True)
+                
     
     return (local_maxi, labels, gauss)
 
@@ -138,7 +145,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
                 if save:
                     try:
-                        filename = meta['Name']+str(i+1)+'.pdf'
+                        filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.pdf'
                         plt.savefig(directory+'/'+filename, transparent=True)
                     except IOError:
                         plt.savefig(filename, transparent=True)
@@ -158,7 +165,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
             if save:
                     try:
-                        filename = meta['Name']+'.pdf'
+                        filename = os.path.splitext(meta['Name'])[0]+'.pdf'
                         plt.savefig(directory+'/'+filename, transparent=True)
                     except IOError:
                         plt.savefig(filename, transparent=True)

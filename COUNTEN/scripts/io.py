@@ -1,6 +1,7 @@
 import bioformats
 import numpy as np
 import os
+from icecream import ic
 import time
 
 
@@ -69,7 +70,7 @@ def load_TIFF(path, opath, serie = 0):
 
 def _new_directory(path, meta):
 
-    directory = str(path)+"/"+"result"+'_'+meta["Name"]+'_'+ time.strftime('%m'+'_'+'%d'+'_'+'%Y')
+    directory = str(path)+"/"+"result"+'_'+os.path.splitext(meta["Name"])[0]+'_'+ time.strftime('%m'+'_'+'%d'+'_'+'%Y')
     if os.path.exists(directory):
         expand = 0
         while True:

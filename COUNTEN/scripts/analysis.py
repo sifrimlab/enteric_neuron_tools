@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 
@@ -54,9 +55,9 @@ def create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=Fa
     
     if save == True:
         try:
-            df.to_csv(directory+'/'+'{}.csv'.format(meta["Name"]))
+            df.to_csv(directory+'/'+'{}.csv'.format(os.path.splitext(meta["Name"])[0]))
         except FileNotFoundError:
-            df.to_csv('{}.csv'.format(meta["Name"]))
+            df.to_csv('{}.csv'.format(os.path.splitext(meta["Name"])[0]))
             
     
     return(df, dist)

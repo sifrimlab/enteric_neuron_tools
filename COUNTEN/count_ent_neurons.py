@@ -15,6 +15,9 @@ image = sys.argv[1]
 output_dir = sys.argv[2]
 script_path = os.path.join(os.path.dirname(sys.argv[0]),"scripts/")
 
+# make output_dir if it doesn't exist
+os.makedirs(output_dir, exist_ok=True)
+
 # Parameters
 pixel_density = 3.2
 sigma = 7
@@ -37,9 +40,12 @@ spec.loader.exec_module(processing)
 
 # Actually process the image and segmetn
 local_maxi, labels, gauss = processing.wide_clusters(neurons, 
-                                                sigma=sigma, 
-                                                pixel_density=pixel_density,
-                                                min_samples=min_samples, output_filename = os.path.splitext(os.path.basename(image))[0])
+                                                     sigma=sigma,
+                                                     pixel_density=pixel_density,
+                                                     min_samples=min_samples,
+                                                     meta=meta,
+                                                     directory=directory,
+                                                     save= True)
 
 ganglion_prop = processing.segmentation(gauss, local_maxi, labels, meta, directory, save = True)
 
