@@ -1,7 +1,5 @@
-import bioformats
 import numpy as np
 import os
-from icecream import ic
 import time
 
 
