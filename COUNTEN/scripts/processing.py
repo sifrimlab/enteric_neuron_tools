@@ -44,7 +44,7 @@ def _binarization(image):
 def _binarize(image):
     subsampled_image = subsample(image)
     thresh = filters.threshold_otsu(subsampled_image)
-    binary = binarize(image, thresh)
+    binary = binarize(image, threshold=thresh)
     binary = dilation(binary, disk(10))
     return (binary)
 
@@ -96,9 +96,9 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
         if save:
             try:
                 filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.png"
-                plt.savefig(os.path.join(directory,filename), transparent=True)
+                plt.savefig(os.path.join(directory,filename))
             except IOError:
-                plt.savefig(filename, transparent=True)
+                plt.savefig(filename)
                 
     
     return (local_maxi, labels, gauss)
@@ -146,9 +146,9 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
                 if save:
                     try:
                         filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.png'
-                        plt.savefig(os.path.join(directory,filename), transparent=True)
+                        plt.savefig(os.path.join(directory,filename))
                     except IOError:
-                        plt.savefig(filename, transparent=True)
+                        plt.savefig(filename)
                         
         else:
             image_label_overlay = label2rgb(segmentation_ws, image=img.astype('uint16'), 

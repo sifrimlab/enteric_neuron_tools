@@ -1,6 +1,9 @@
 import sys
 import os
 import argparse
+import custom_io
+import processing
+import analysis
 import tkinter as Tk
 from tkinter.filedialog import askopenfilename, askdirectory
 import importlib.util # This is to manually import the scripts to make sure it's all correct
@@ -69,7 +72,6 @@ def runApp():
     minSamplesEntry.insert(0, 2)
 
     def extract_and_count():
-
         # rename variable cause I'm too lazy to refactor code
         filename = czi_path
         filename_base = os.path.splitext(os.path.basename(filename))[0]
@@ -93,7 +95,7 @@ def runApp():
 
         image_list = []
         for z_num in z_numbers:
-            image_slice, shape = czi.read_image(C=int(channelSpinBox.get()), Z=z_num)
+            image_slice, _ = czi.read_image(C=int(channelSpinBox.get()), Z=z_num)
             image_slice = image_slice[0,0,0,0,0,:,:]
             image_list.append(image_slice)
         img_extracted = maxIPstack(image_list)
@@ -106,20 +108,20 @@ def runApp():
 
 
         # Load module
-        spec = importlib.util.spec_from_file_location("io",os.path.join(script_path, "io.py"))
-        custom_io = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(custom_io)
+        # spec = importlib.util.spec_from_file_location("io",os.path.join(script_path, "io.py"))
+        # custom_io = importlib.util.module_from_spec(spec)
+        # spec.loader.exec_module(custom_io)
 
         javabridge.start_vm(class_path=bioformats.JARS)
 
         neurons, directory, meta = custom_io.load_TIFF(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_maxIP.tiff"), out_dir)
 
-        javabridge.kill_vm()
+        # javabridge.kill_vm()
 
         # Load module
-        spec = importlib.util.spec_from_file_location("processing",os.path.join(script_path,"processing.py"))
-        processing = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(processing)
+        # spec = importlib.util.spec_from_file_location("processing",os.path.join(script_path,"processing.py"))
+        # processing = importlib.util.module_from_spec(spec)
+        # spec.loader.exec_module(processing)
 
         # Actually process the image and segmetn
         local_maxi, labels, gauss = processing.wide_clusters(neurons,
@@ -135,14 +137,27 @@ def runApp():
         # Save the dataframe
 
         # Load module
-        spec = importlib.util.spec_from_file_location("analysis",os.path.join(script_path,"analysis.py"))
-        analysis = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(analysis)
+        # spec = importlib.util.spec_from_file_location("analysis",os.path.join(script_path,"analysis.py"))
+        # analysis = importlib.util.module_from_spec(spec)
+        # spec.loader.exec_module(analysis)
 
         # Run dataframe function from module
         _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
+    # Button to close the application:
+    def Close():
+        try:
+            javabridge.kill_vm()
+        except:
+            pass
+        window.destroy()
+  
+  
+    # Button for closing
+    exitButton = Tk.Button(window, text="Exit", activebackground=("red"),command=Close)
+    exitButton.grid(row=6, sticky="W")
 
-    startBtn = Tk.Button(window, text="Count neurons", bg=("orange"), command=extract_and_count)
+
+    startBtn = Tk.Button(window, text="Count neurons", bg=("#4ea2a2"), command=extract_and_count)
     startBtn.grid(column=1,row=6)
 
     window.mainloop()
