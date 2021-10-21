@@ -59,14 +59,14 @@ def subsample(img):
 
 # You added output_filename to save the created image 
 def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot = True, save=False):
-
     grayscale = rgb2gray(img)
-    gauss = gaussian(grayscale, sigma=sigma)    
+    gauss = gaussian(grayscale, sigma=sigma)
     img_subsampled = subsample(gauss)
-    
-    thresh = filters.threshold_otsu(img_subsampled)
-    
-    is_peak = feature.peak_local_max(gauss, min_distance = 2.5 * pixel_density, threshold_abs=thresh +   
+
+    thresh =filters.threshold_otsu(img_subsampled)
+
+
+    is_peak = feature.peak_local_max(gauss, min_distance = int(2.5 * pixel_density), threshold_abs=thresh +
                                      (10*thresh)/100,
                                       exclude_border=False, indices=False)
     plabels = label(is_peak)[0]
