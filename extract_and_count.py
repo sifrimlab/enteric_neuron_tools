@@ -1,10 +1,12 @@
 import sys
 import os
+import time
 import argparse
 import importlib.util # This is to manually import the scripts to make sure it's all correct
 import matplotlib.pyplot as plt
 import numpy as np
 import aicspylibczi
+import custom_io, analysis, processing
 from skimage import io
 
 # First extract the correct image from the czi stack
@@ -20,61 +22,75 @@ ap.add_argument('-p', '--pixel_density', default=3.2, type=float, help="Pixel de
 ap.add_argument('-s', '--sigma', default=7, type=int, help="Sigma used to smooth the image using a gaussian smoother. default = 7")
 ap.add_argument('-m', '--min_samples', default=2, type=int, help="Minimum number of neurons in a ganglion. default = 2")
 
+ap.add_argument('-i', '--maxIP', default=True,action="store_false", help="Flag that turns off taking the maxIP of the z-dimension. If used, requires the usage of --z_number")
+ap.add_argument('-z', '--z_number', default=0, type=int, help="index (start at 0) of the z-stack that needs to be extracted.. Default = 0.")
+
 args = ap.parse_args()
 
 # if no out_dir is given, take the base dir of the input image
 if args.out_dir is None:
     args.out_dir = os.path.dirname(args.czi_path)
 
+if not args.maxIP and not args.z_number:
+    ap.error('The following arguments are required when not performing maxIP: --z_number')
+if args.z_number and args.maxIP:
+    ap.error('You cannot both take a maxIP and extract a single z-stack')
+
 filename = args.czi_path
 filename_base = os.path.splitext(os.path.basename(filename))[0]
-
-
-
-czi = aicspylibczi.CziFile(filename)
-
-z_min, z_max = czi.get_dims_shape()[0]['Z']
-z_numbers = range(z_min,z_max)
-
-def maxIPstack(img_list):
-    parsed_list = img_list
-    parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
-    # now all elements in parsed_list are ndarrays
-    maxIP = np.maximum.reduce(parsed_list)
-    return maxIP
-
-image_list = []
-for z_num in z_numbers:
-    image_slice, shape = czi.read_image(C=args.c_number, Z=z_num)
-    image_slice = image_slice[0,0,0,0,0,:,:]
-    image_list.append(image_slice)
-img_extracted = maxIPstack(image_list)
-
-print(f"Extracted {filename_base}_c{args.c_number}_maxIP.tiff")
-io.imsave(f"{args.out_dir}/{filename_base}_c{args.c_number}_maxIP.tiff", img_extracted)
-
-### Analyzing
-
-script_path = os.path.join(os.path.dirname(sys.argv[0]),"scripts/")
 
 # make output_dir if it doesn't exist
 os.makedirs(args.out_dir, exist_ok=True)
 
-# Load module
-spec = importlib.util.spec_from_file_location("io",os.path.join(script_path, "io.py"))
-io = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(io)
 
-javabridge.start_vm(class_path=bioformats.JARS)
+czi = aicspylibczi.CziFile(filename)
 
-neurons, directory, meta = io.load_TIFF(f"{args.out_dir}/{filename_base}_c{args.c_number}_maxIP.tiff", args.out_dir)
+if args.maxIP:
+    z_min, z_max = czi.get_dims_shape()[0]['Z']
+    z_numbers = range(z_min,z_max)
 
-javabridge.kill_vm()
+    def maxIPstack(img_list):
+        parsed_list = img_list
+        parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
+        # now all elements in parsed_list are ndarrays
+        maxIP = np.maximum.reduce(parsed_list)
+        return maxIP
 
-# Load module
-spec = importlib.util.spec_from_file_location("processing",os.path.join(script_path,"processing.py"))
-processing = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(processing)
+    image_list = []
+    for z_num in z_numbers:
+        image_slice, shape = czi.read_image(C=args.c_number, Z=z_num)
+        image_slice = image_slice[0,0,0,0,0,:,:]
+        image_list.append(image_slice)
+    img_extracted = maxIPstack(image_list)
+else:
+    image_slice, shape = czi.read_image(C=args.c_number, Z=args.z_number)
+    image_slice = image_slice[0,0,0,0,0,:,:]
+    img_extracted = image_slice
+
+
+print(f"Extracted to {filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tiff")
+io.imsave(f"{args.out_dir}/{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tiff", img_extracted)
+
+### Analyzing
+
+neurons = io.imread(f"{args.out_dir}/{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tiff")
+meta = {"Name": os.path.splitext(f"{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tiff")[0]}
+directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
+
+
+if os.path.exists(directory):
+    expand = 0
+    while True:
+        expand += 1
+        new_directory = directory+"_"+str(expand)
+        if os.path.exists(new_directory):
+            continue
+        else:
+            directory = new_directory
+            os.makedirs(directory, exist_ok=True)
+            break
+else:
+    os.makedirs(directory, exist_ok=True)
 
 # Actually process the image and segmetn
 local_maxi, labels, gauss = processing.wide_clusters(neurons,
@@ -89,10 +105,5 @@ ganglion_prop = processing.segmentation(gauss, local_maxi, labels, meta, directo
 
 # Save the dataframe
 
-# Load module
-spec = importlib.util.spec_from_file_location("analysis",os.path.join(script_path,"analysis.py"))
-analysis = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(analysis)
-
 # Run dataframe function from module
-df, dist = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
+_, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)

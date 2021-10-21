@@ -46,7 +46,7 @@ def _binarize(image):
     thresh = filters.threshold_otsu(subsampled_image)
     binary = binarize(image, threshold=thresh)
     binary = dilation(binary, disk(10))
-    return (binary)
+    return binary
 
 def subsample(img):
     x,y=img.shape
@@ -57,7 +57,7 @@ def subsample(img):
     return img[start_x:start_x+crop_x, start_y:start_y+crop_y]
 
 
-# You added output_filename to save the created image 
+# You added output_filename to save the created image
 def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot = True, save=False):
     grayscale = rgb2gray(img)
     gauss = gaussian(grayscale, sigma=sigma)
@@ -72,7 +72,7 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
     plabels = label(is_peak)[0]
     merged_peaks = center_of_mass(is_peak, plabels, range(1, np.max(plabels)+1))
     local_maxi = np.array(merged_peaks)
-    
+
     X = local_maxi
 
     # Compute DBSCAN
