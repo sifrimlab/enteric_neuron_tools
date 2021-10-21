@@ -102,7 +102,6 @@ def runApp():
 
         ### Analyzing
 
-        # script_path = os.path.join(os.path.dirname(sys.argv[0]),"scripts/")
 
         neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_maxIP.tiff"))
         meta = {"Name": os.path.splitext(f"{filename_base}_c{int(channelSpinBox.get())}_maxIP.tiff")[0]}
