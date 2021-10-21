@@ -99,8 +99,8 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
                 plt.savefig(os.path.join(directory,filename))
             except IOError:
                 plt.savefig(filename)
-                
-    
+
+
     return (local_maxi, labels, gauss)
 
 def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False):
@@ -119,7 +119,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
     segmentation_ws = watershed(-img, only_clusters, mask = binary)
 
     ganglion_prop = regionprops(segmentation_ws)
-    
+
     if plot == True:
         if segmentation_ws.size > 250000000:
             x,y=img.shape #Array splitting
@@ -129,11 +129,11 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
             seg_ws2 = segmentation_ws[0:x, int(y/2)+1:y]
             seg_ws = [seg_ws1, seg_ws2]
             img_list = [img_1, img_2]
-            
+
             for i in range(2):
                 image_label_overlay = label2rgb(seg_ws[i], image=img_list[i].astype('uint16'), 
                                                 bg_label=0)
-        
+
                 fig,ax = plt.subplots(1,1, figsize=(16,16))
                 ax.imshow(image_label_overlay, interpolation='nearest')
                 ax.axis('off')
@@ -149,11 +149,11 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
                         plt.savefig(os.path.join(directory,filename))
                     except IOError:
                         plt.savefig(filename)
-                        
+
         else:
             image_label_overlay = label2rgb(segmentation_ws, image=img.astype('uint16'), 
                                                 bg_label=0)
-        
+
             fig,ax = plt.subplots(1,1, figsize=(16,16))
             ax.imshow(image_label_overlay, interpolation='nearest')
             ax.axis('off')
@@ -164,10 +164,10 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
                                 fontsize=8,weight = "bold")
 
             if save:
-                    try:
-                        filename = os.path.splitext(meta['Name'])[0]+'.png'
-                        plt.savefig(os.path.join(directory,filename), transparent=True)
-                    except IOError:
-                        plt.savefig(filename, transparent=True)
-
-    return(ganglion_prop)
+                try:
+                    filename = os.path.splitext(meta['Name'])[0]+'.png'
+                    plt.savefig(os.path.join(directory,filename), transparent=True)
+                except IOError:
+                    plt.savefig(filename, transparent=True)
+ 
+    return ganglion_prop
