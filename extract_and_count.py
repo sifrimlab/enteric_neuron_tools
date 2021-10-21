@@ -23,7 +23,7 @@ ap.add_argument('-s', '--sigma', default=7, type=int, help="Sigma used to smooth
 ap.add_argument('-m', '--min_samples', default=2, type=int, help="Minimum number of neurons in a ganglion. default = 2")
 
 ap.add_argument('-i', '--maxIP', default=True,action="store_false", help="Flag that turns off taking the maxIP of the z-dimension. If used, requires the usage of --z_number")
-ap.add_argument('-z', '--z_number', default=0, type=int, help="index (start at 0) of the z-stack that needs to be extracted.. Default = 0.")
+ap.add_argument('-z', '--z_number', default=None, type=int, help="index (start at 0) of the z-stack that needs to be extracted.")
 
 args = ap.parse_args()
 
@@ -31,7 +31,7 @@ args = ap.parse_args()
 if args.out_dir is None:
     args.out_dir = os.path.dirname(args.czi_path)
 
-if not args.maxIP and not args.z_number:
+if not args.maxIP and args.z_number == None:
     ap.error('The following arguments are required when not performing maxIP: --z_number')
 if args.z_number and args.maxIP:
     ap.error('You cannot both take a maxIP and extract a single z-stack')
