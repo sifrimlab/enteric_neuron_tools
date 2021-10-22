@@ -69,7 +69,7 @@ def runApp():
             zstackLabel=Tk.Label(window,text="Z-stack index to be used.")
             zstackLabel.grid(row=7, sticky="W")
             zstackSpinBox = Tk.Spinbox(from_=0, to=50)
-            zstackSpinBox.grid(row=7, column=1)
+            zstackSpinBox.grid(row=7, column=1, sticky="E")
 
         else:
             on_button.config(image = on)
@@ -142,8 +142,6 @@ def runApp():
         io.imsave(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff"), img_extracted)
 
         ### Analyzing
-
-
         neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff"))
         meta = {"Name": os.path.splitext(f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff")[0]}
         directory = os.path.join(str(out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
