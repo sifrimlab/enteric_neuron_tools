@@ -105,12 +105,22 @@ def runApp():
     minSamplesEntry.insert(0, 2)
 
     def extract_and_count():
+        statusLabel.config(text="")
         # rename variable cause I'm too lazy to refactor code
-        filename = czi_path
+        try:
+            filename = czi_path
+        except NameError:
+            statusLabel.config(text="No input file given.", fg="red")
+
+
         filename_base = os.path.splitext(os.path.basename(filename))[0]
 
         # make out_dir if it doesn't exist
-        os.makedirs(out_dir, exist_ok=True)
+        try:
+            os.makedirs(out_dir, exist_ok=True)
+        except NameError:
+            statusLabel.config(text="No output directory given.", fg="red")
+
 
 
 
@@ -134,7 +144,11 @@ def runApp():
                 image_list.append(image_slice)
             img_extracted = maxIPstack(image_list)
         else:
-            image_slice, _ = czi.read_image(C=int(channelSpinBox.get()), Z=int(zstackSpinBox.get()))
+            try:
+                image_slice, _ = czi.read_image(C=int(channelSpinBox.get()), Z=int(zstackSpinBox.get()))
+            except ValueError:
+                statusLabel.config(text="Invalid argument in one of the numerical parameters", fg="red")
+
             image_slice = image_slice[0,0,0,0,0,:,:]
             img_extracted = image_slice
 
@@ -174,7 +188,7 @@ def runApp():
         # Save the dataframe
         # Run dataframe function from module
         _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
-        statusLabel.config(text=f"Counting succesful. Output saved to {directory}")
+        statusLabel.config(text="Counting succesful.", fg="green")
     # Button to close the application:
     def Close():
         window.destroy()
