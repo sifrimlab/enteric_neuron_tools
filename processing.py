@@ -95,7 +95,7 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
         ax[1].axis("off")
         if save:
             try:
-                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.png"
+                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.tif"
                 plt.savefig(os.path.join(directory,filename))
             except IOError:
                 plt.savefig(filename)
@@ -145,7 +145,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
                 if save:
                     try:
-                        filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.png'
+                        filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.tif'
                         plt.savefig(os.path.join(directory,filename))
                     except IOError:
                         plt.savefig(filename)
@@ -165,7 +165,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
             if save:
                 try:
-                    filename = os.path.splitext(meta['Name'])[0]+'.png'
+                    filename = os.path.splitext(meta['Name'])[0]+'.tif'
                     plt.savefig(os.path.join(directory,filename), transparent=True)
                 except IOError:
                     plt.savefig(filename, transparent=True)
