@@ -18,6 +18,7 @@ from skimage import filters
 from skimage.transform import resize 
 from skimage.color import rgb2gray
 from scipy.ndimage.measurements import center_of_mass, label
+from icecream import ic
 
 
 def background_correct(img):
@@ -148,6 +149,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
                         filename = os.path.splitext(meta['Name'])[0]+str(i+1)+'.tif'
                         plt.savefig(os.path.join(directory,filename))
                     except IOError:
+                        print(IOError)
                         plt.savefig(filename)
 
         else:
@@ -165,7 +167,7 @@ def segmentation(img, local_maxi, labels, meta, directory, plot=True, save=False
 
             if save:
                 try:
-                    filename = os.path.splitext(meta['Name'])[0]+'.tif'
+                    filename = f"{os.path.splitext(meta['Name'])[0]}_segmentation.tif"
                     plt.savefig(os.path.join(directory,filename), transparent=True)
                 except IOError:
                     plt.savefig(filename, transparent=True)

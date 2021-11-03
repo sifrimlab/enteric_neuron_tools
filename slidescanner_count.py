@@ -7,6 +7,7 @@ import numpy as np
 import custom_io, analysis, processing
 from skimage import io
 from tiling import completeTiling
+from icecream import ic
 
 # First extract the correct image from the tif stack
 
@@ -42,9 +43,8 @@ os.makedirs(args.out_dir, exist_ok=True)
 
 neurons =  io.imread(filename)
 meta = {"Name": os.path.splitext(filename_base)[0]}
+
 directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
-
-
 if os.path.exists(directory):
     expand = 0
     while True:
@@ -64,9 +64,10 @@ if any(dim > 2000 for dim in neurons.shape):
 else:
     tiling_name_list = [filename]
 
+
 for tile_name in tiling_name_list:
     neurons = io.imread(tile_name)
-    meta = {"Name": os.path.splitext(tile_name)[0]}
+    meta = {"Name": os.path.basename(os.path.splitext(tile_name)[0])} # Basename is for when tiles are created, their tile_name will contain the args.out_dir prefix, which we want to get rid off
     # We don't redefine directory cause we want it to end up in the same directory
     # Actually process the image and segmetn
     local_maxi, labels, gauss = processing.wide_clusters(neurons,
