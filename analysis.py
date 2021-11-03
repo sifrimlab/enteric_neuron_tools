@@ -62,4 +62,6 @@ def create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=Fa
             df.to_csv('{}.csv'.format(os.path.splitext(meta["Name"])[0]))
             
     
+    if "dist" not in locals():
+        dist = None
     return(df, dist)

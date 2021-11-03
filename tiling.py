@@ -37,7 +37,7 @@ def calculateOptimalTileSize(X: int, Y: int , target_X: int, target_Y: int):
 def roundUpTo100(x):
     result = x if x % 100 == 0 else x + 100 - x % 100
     return result
-def writeTiles(img, prefix,tile_size_x, tile_size_y):
+def writeTiles(img, prefix,tile_size_x, tile_size_y, output_dir="./"):
     # Don't forget, cv2 works with shape = (y, x), meaning rows, columns
     img_shape=img.shape
     offset_x = tile_size_x
@@ -51,8 +51,8 @@ def writeTiles(img, prefix,tile_size_x, tile_size_y):
             multiplier = (int(math.ceil(img_shape[1]/(offset[0] * 1.0))))
             cropped_img = img[offset[1]*i:min(offset[1]*i+tile_size[1], img_shape[0]), offset[0]*j:min(offset[0]*j+tile_size[0], img_shape[1])]
             tile_number = multiplier*int(i) + int(j) +1
-            io.imsave(f"{prefix}_tiled_{tile_number}.tif", cropped_img)
-            tile_name_list.append(f"{prefix}_tiled_{tile_number}.tif")
+            io.imsave(os.path.join(output_dir, f"{prefix}_tiled_{tile_number}.tif"), cropped_img)
+            tile_name_list.append(os.path.join(output_dir, f"{prefix}_tiled_{tile_number}.tif"))
     return tile_name_list
 
 
@@ -114,11 +114,11 @@ def findOptimalDivisor(number: int, target_quotient: int):
     min_loss = min(quotients, key=lambda x:abs(x-target_quotient))
     return min_loss
 
-def completeTiling(image, prefix):
+def completeTiling(image, prefix, output_dir):
     input_shape_x, input_shape_y = image.shape
     optimal_tile_x, optimal_tile_y, grid_size_x, grid_size_y= calculateOptimalTileSize(input_shape_x,input_shape_y,2000,2000)
     padded_img =  pad(image)
-    tile_name_list = writeTiles(padded_img, prefix, optimal_tile_x, optimal_tile_y)
+    tile_name_list = writeTiles(padded_img, prefix, optimal_tile_x, optimal_tile_y, output_dir)
     return tile_name_list
 
 if __name__=='__main__':

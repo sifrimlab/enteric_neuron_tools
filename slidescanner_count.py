@@ -60,7 +60,7 @@ else:
     os.makedirs(directory, exist_ok=True)
 
 if any(dim > 2000 for dim in neurons.shape):
-    tiling_name_list = completeTiling(neurons, filename_base)
+    tiling_name_list = completeTiling(neurons, filename_base, output_dir=args.out_dir)
 else:
     tiling_name_list = [filename]
 
