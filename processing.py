@@ -76,30 +76,49 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
 
     X = local_maxi
 
-    # Compute DBSCAN
-    db = DBSCAN(eps=20.6*pixel_density, min_samples=min_samples).fit(X)
-    labels = db.labels_
+    if len(X) > 0:
+        # Compute DBSCAN
+        db = DBSCAN(eps=20.6*pixel_density, min_samples=min_samples).fit(X)
+        labels = db.labels_
 
-    if plot:
-        label_plot = np.copy(labels)
-        label_plot[labels == 0] = max(labels)+1
-        label_plot[labels == -1] = 0
+        if plot:
+            label_plot = np.copy(labels)
+            label_plot[labels == 0] = max(labels)+1
+            label_plot[labels == -1] = 0
 
+            fig, (ax) = plt.subplots(nrows=1, ncols=2, figsize=(16, 8),
+                                   sharex=True, sharey=True, squeeze=True)
+            ax[0].imshow(gauss, alpha=0.6)
+            ax[0].scatter(local_maxi[:,1], local_maxi[:,0], s=4)
+            ax[0].axis("off")
+
+            ax[1].imshow(gauss, alpha=0.3)
+            ax[1].scatter(local_maxi[:,1], local_maxi[:,0], c=label_plot, cmap = "nipy_spectral")
+            ax[1].axis("off")
+            if save:
+                try:
+                    filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.tif"
+                    plt.savefig(os.path.join(directory,filename))
+                except IOError:
+                    plt.savefig(filename)
+    # If there are no elements in X, just plot the images anyway even though there is nothing to see, this way the output is consistent in looking over the tiles
+    else:
+        # Create an empty labels array to allow for the rest of the processing to continue
+        labels = np.empty(0)
         fig, (ax) = plt.subplots(nrows=1, ncols=2, figsize=(16, 8),
-                               sharex=True, sharey=True, squeeze=True)
+                       sharex=True, sharey=True, squeeze=True)
+
         ax[0].imshow(gauss, alpha=0.6)
-        ax[0].scatter(local_maxi[:,1], local_maxi[:,0], s=4)
         ax[0].axis("off")
 
         ax[1].imshow(gauss, alpha=0.3)
-        ax[1].scatter(local_maxi[:,1], local_maxi[:,0], c=label_plot, cmap = "nipy_spectral")
         ax[1].axis("off")
-        if save:
-            try:
-                filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.tif"
-                plt.savefig(os.path.join(directory,filename))
-            except IOError:
-                plt.savefig(filename)
+        try:
+            filename = f"{os.path.splitext(meta['Name'])[0]}_clusters.tif"
+            plt.savefig(os.path.join(directory,filename))
+        except IOError:
+            plt.savefig(filename)
+    
 
 
     return (local_maxi, labels, gauss)

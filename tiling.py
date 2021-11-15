@@ -116,7 +116,7 @@ def findOptimalDivisor(number: int, target_quotient: int):
 
 def completeTiling(image, prefix, output_dir):
     input_shape_x, input_shape_y = image.shape
-    optimal_tile_x, optimal_tile_y, grid_size_x, grid_size_y= calculateOptimalTileSize(input_shape_x,input_shape_y,2000,2000)
+    optimal_tile_x, optimal_tile_y, grid_size_x, grid_size_y= calculateOptimalTileSize(input_shape_x,input_shape_y,1000,1000)
     padded_img =  pad(image)
     tile_name_list = writeTiles(padded_img, prefix, optimal_tile_x, optimal_tile_y, output_dir)
     return tile_name_list
