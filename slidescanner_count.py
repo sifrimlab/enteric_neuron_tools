@@ -67,7 +67,7 @@ else:
 
 for tile_name in tiling_name_list:
     neurons = io.imread(tile_name)
-    if np.std(neurons) > 50:
+    if np.std(neurons) > 100:
         meta = {"Name": os.path.basename(os.path.splitext(tile_name)[0])} # Basename is for when tiles are created, their tile_name will contain the args.out_dir prefix, which we want to get rid off
         # We don't redefine directory cause we want it to end up in the same directory
         # Actually process the image and segmetn
