@@ -44,7 +44,7 @@ os.makedirs(args.out_dir, exist_ok=True)
 neurons =  io.imread(filename)
 meta = {"Name": os.path.splitext(filename_base)[0]}
 
-directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
+directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}_sigma{args.sigma}")
 if os.path.exists(directory):
     expand = 0
     while True:
