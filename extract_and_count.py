@@ -2,12 +2,14 @@ import sys
 import os
 import time
 import argparse
+import numpy as np
 import importlib.util # This is to manually import the scripts to make sure it's all correct
 import matplotlib.pyplot as plt
 import numpy as np
 import aicspylibczi
 import custom_io, analysis, processing
 from skimage import io
+from skimage.filters import laplace
 
 # First extract the correct image from the czi stack
 
@@ -31,8 +33,25 @@ args = ap.parse_args()
 if args.out_dir is None:
     args.out_dir = os.path.dirname(args.czi_path)
 
-if not args.maxIP and args.z_number == None:
-    ap.error('The following arguments are required when not performing maxIP: --z_number')
+extract_most_in_focus = bool(not args.maxIP and args.z_number is None)
+def getMostInFocusImage(image_array_list):
+    stdev_list = []
+    for image in image_array_list:
+        # calculate edges in image
+        edged = laplace(image)
+        # Calculate stdev of edges
+        stdev = np.std(edged)
+        stdev_list.append(stdev)
+    
+    # Find largest stdev in list
+    largest = max(stdev_list)
+    # Fidn which index it is to link back to the original list
+    index = stdev_list.index(largest)
+    print("Extracted most in focus z-stack is index {index}")
+    return image_array_list[index], index
+
+
+
 if args.z_number and args.maxIP:
     ap.error('You cannot both take a maxIP and extract a single z-stack')
 
@@ -45,9 +64,10 @@ os.makedirs(args.out_dir, exist_ok=True)
 
 czi = aicspylibczi.CziFile(filename)
 
+z_min, z_max = czi.get_dims_shape()[0]['Z']
+z_numbers = range(z_min,z_max)
+
 if args.maxIP:
-    z_min, z_max = czi.get_dims_shape()[0]['Z']
-    z_numbers = range(z_min,z_max)
 
     def maxIPstack(img_list):
         parsed_list = img_list
@@ -62,10 +82,18 @@ if args.maxIP:
         image_slice = image_slice[0,0,0,0,0,:,:]
         image_list.append(image_slice)
     img_extracted = maxIPstack(image_list)
+elif extract_most_in_focus:
+    image_list = []
+    for z_num in z_numbers:
+        image_slice, shape = czi.read_image(C=args.c_number, Z=z_num)
+        image_slice = image_slice[0,0,0,0,0,:,:]
+        image_list.append(image_slice)
+    img_extracted, args.z_number =  getMostInFocusImage(image_list)
 else:
     image_slice, shape = czi.read_image(C=args.c_number, Z=args.z_number)
     image_slice = image_slice[0,0,0,0,0,:,:]
     img_extracted = image_slice
+
 
 
 print(f"Extracted to {filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tiff")

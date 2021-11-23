@@ -9,6 +9,7 @@ import numpy as np
 import aicspylibczi
 import tkinter as Tk
 from skimage import io
+from skimage.filters import laplace
 import matplotlib.pyplot as plt
 from tkinter.filedialog import askopenfilename, askdirectory
 
@@ -49,7 +50,7 @@ def runApp():
     # Fill in the channel number
     channelLabel=Tk.Label(window,text="Channel index of marker of interest:")
     channelLabel.grid(row=2, sticky="W")
-    channelSpinBox = Tk.Spinbox(from_=0,to=4)
+    channelSpinBox = Tk.Spinbox(from_=-1,to=4)
     # channelSpinBox.pack()
     channelSpinBox.grid(row=2, column=1, sticky="E")
 
@@ -121,14 +122,33 @@ def runApp():
         except NameError:
             statusLabel.config(text="No output directory given.", fg="red")
 
+        c_number = int(channelSpinBox.get())
+        z_number = int(zstackSpinBox.get())
+
+        extract_most_in_focus = bool(not maxIP and z_number is -1)
+        def getMostInFocusImage(image_array_list):
+            stdev_list = []
+            for image in image_array_list:
+                # calculate edges in image
+                edged = laplace(image)
+                # Calculate stdev of edges
+                stdev = np.std(edged)
+                stdev_list.append(stdev)
+            
+            # Find largest stdev in list
+            largest = max(stdev_list)
+            # Fidn which index it is to link back to the original list
+            index = stdev_list.index(largest)
+            print("Extracted most in focus z-stack is index {index}")
+            return image_array_list[index], index
 
 
 
         czi = aicspylibczi.CziFile(filename)
 
+        z_min, z_max = czi.get_dims_shape()[0]['Z']
+        z_numbers = range(z_min,z_max)
         if maxIP:
-            z_min, z_max = czi.get_dims_shape()[0]['Z']
-            z_numbers = range(z_min,z_max)
 
             def maxIPstack(img_list):
                 parsed_list = img_list
@@ -139,25 +159,32 @@ def runApp():
 
             image_list = []
             for z_num in z_numbers:
-                image_slice, _ = czi.read_image(C=int(channelSpinBox.get()), Z=z_num)
+                image_slice, _ = czi.read_image(C=c_number, Z=z_num)
                 image_slice = image_slice[0,0,0,0,0,:,:]
                 image_list.append(image_slice)
             img_extracted = maxIPstack(image_list)
+        elif extract_most_in_focus:
+                image_list = []
+                for z_num in z_numbers:
+                    image_slice, _ = czi.read_image(C=c_number, Z=z_num)
+                    image_slice = image_slice[0,0,0,0,0,:,:]
+                    image_list.append(image_slice)
+                img_extracted, z_number =  getMostInFocusImage(image_list)
+
         else:
             try:
-                image_slice, _ = czi.read_image(C=int(channelSpinBox.get()), Z=int(zstackSpinBox.get()))
+                image_slice, _ = czi.read_image(C=c_number, Z=z_number)
             except ValueError:
                 statusLabel.config(text="Invalid argument in one of the numerical parameters", fg="red")
-
             image_slice = image_slice[0,0,0,0,0,:,:]
             img_extracted = image_slice
 
 
-        io.imsave(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff"), img_extracted)
+        io.imsave(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff"), img_extracted)
 
         ### Analyzing
-        neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff"))
-        meta = {"Name": os.path.splitext(f"{filename_base}_c{int(channelSpinBox.get())}_{'maxIP' if maxIP else f'z{zstackSpinBox.get()}'}.tiff")[0]}
+        neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff"))
+        meta = {"Name": os.path.splitext(f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff")[0]}
         directory = os.path.join(str(out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
 
         if os.path.exists(directory):
