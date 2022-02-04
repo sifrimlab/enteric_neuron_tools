@@ -29,7 +29,7 @@ args = ap.parse_args()
 
 # if no out_dir is given, take the base dir of the input image
 if args.out_dir is None:
-    args.out_dir = os.path.dirname(args.czi_path)
+    args.out_dir = os.path.dirname(args.tiff_path)
 
 # if not args.maxIP and args.z_number == None:
 #     ap.error('The following arguments are required when not performing maxIP: --z_number')

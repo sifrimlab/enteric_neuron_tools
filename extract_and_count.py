@@ -11,10 +11,11 @@ import custom_io, analysis, processing
 from skimage import io
 from skimage.filters import laplace
 
+
 # First extract the correct image from the czi stack
 
-ap = argparse.ArgumentParser(description="Extract tiff from a .czi image and count neurons and ganglia.")
-ap.add_argument('czi_path',type=str,help="Path (relative or absolute) to target image")
+ap = argparse.ArgumentParser(description="Extract tiff from an image and count neurons and ganglia.")
+ap.add_argument('file_path',type=str,help="Path (relative or absolute) to target image")
 ap.add_argument('-o', '--out_dir', type=str, help="Root directory where output should be stored, default is base dir of the input image")
 ap.add_argument('-c', '--c_number', default=0, type=int, help="indexes (start at 0) of the channel contains the marker of interest. Default = 0.")
 
@@ -31,9 +32,13 @@ args = ap.parse_args()
 
 # if no out_dir is given, take the base dir of the input image
 if args.out_dir is None:
-    args.out_dir = os.path.dirname(args.czi_path)
+    args.out_dir = os.path.dirname(args.file_path)
 
-extract_most_in_focus = bool(not args.maxIP and args.z_number is None)
+if args.z_number and args.maxIP:
+    ap.error('You cannot both take a maxIP and extract a single z-stack')
+
+extract_most_in_focus = bool(not args.maxIP and args.z_number is None) # if neither flags are set, we just extract the most in focus z-stack
+
 def getMostInFocusImage(image_array_list):
     stdev_list = []
     for image in image_array_list:
@@ -52,47 +57,59 @@ def getMostInFocusImage(image_array_list):
 
 
 
-if args.z_number and args.maxIP:
-    ap.error('You cannot both take a maxIP and extract a single z-stack')
+filename = args.file_path
+if filename.lower().endswith("czi"):
+    image_type = "czi"
+elif filename.lower().endswith(("tif", "tiff")):
+    image_type = "tif"
 
-filename = args.czi_path
 filename_base = os.path.splitext(os.path.basename(filename))[0]
 
 # make output_dir if it doesn't exist
 os.makedirs(args.out_dir, exist_ok=True)
 
+def maxIPstack(img_list):
+    parsed_list = img_list
+    parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
+    # now all elements in parsed_list are ndarrays
+    maxIP = np.maximum.reduce(parsed_list)
+    return maxIP
 
-czi = aicspylibczi.CziFile(filename)
+# Now we extract the image in question, workflow of this has to be different depending on the filetype
+if image_type == "czi":
 
-z_min, z_max = czi.get_dims_shape()[0]['Z']
-z_numbers = range(z_min,z_max)
+    czi = aicspylibczi.CziFile(filename)
 
-if args.maxIP:
-
-    def maxIPstack(img_list):
-        parsed_list = img_list
-        parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
-        # now all elements in parsed_list are ndarrays
-        maxIP = np.maximum.reduce(parsed_list)
-        return maxIP
+    z_min, z_max = czi.get_dims_shape()[0]['Z']
+    z_numbers = range(z_min,z_max)
 
     image_list = []
     for z_num in z_numbers:
+        # Extract all z-stacks and put them in list for maxIP function
         image_slice, shape = czi.read_image(C=args.c_number, Z=z_num)
         image_slice = image_slice[0,0,0,0,0,:,:]
         image_list.append(image_slice)
-    img_extracted = maxIPstack(image_list)
-elif extract_most_in_focus:
-    image_list = []
-    for z_num in z_numbers:
-        image_slice, shape = czi.read_image(C=args.c_number, Z=z_num)
+
+    # If the user wants a maxip
+    if args.maxIP:
+        img_extracted = maxIPstack(image_list)
+
+    # If the user doesn't want a maxIP, we extract the most in focus z-stack
+    elif extract_most_in_focus:
+        img_extracted, args.z_number =  getMostInFocusImage(image_list)
+    # if 
+    else:
+        # if neither are true, the user inputted a z-number, and we just extract that one
+        image_slice, shape = czi.read_image(C=args.c_number, Z=args.z_number)
         image_slice = image_slice[0,0,0,0,0,:,:]
-        image_list.append(image_slice)
-    img_extracted, args.z_number =  getMostInFocusImage(image_list)
-else:
-    image_slice, shape = czi.read_image(C=args.c_number, Z=args.z_number)
-    image_slice = image_slice[0,0,0,0,0,:,:]
-    img_extracted = image_slice
+        img_extracted = image_slice
+
+elif image_type == "tif":
+    image = io.imread(filename)
+    #TODO for now, we assume that the c-stack index is the last one, but this doesn't necessarily have to be the case. can we find that smarter?
+    #TODO it doesn't deal with z-stack yet, since we haven't encountered datasets where this was necessary
+    img_extracted = image[:,:,args.c_number]
+    args.z_number = 0
 
 
 
@@ -132,6 +149,5 @@ local_maxi, labels, gauss = processing.wide_clusters(neurons,
 ganglion_prop = processing.segmentation(gauss, local_maxi, labels, meta, directory, save = True)
 
 # Save the dataframe
-
 # Run dataframe function from module
 _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
