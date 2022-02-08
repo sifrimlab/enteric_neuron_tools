@@ -11,8 +11,8 @@ from skimage import io
 
 # First extract the correct image from the czi stack
 
-ap = argparse.ArgumentParser(description="Count neurons and ganglia from a tiff image.")
-ap.add_argument('tiff_path',type=str,help="Path (relative or absolute) to target image")
+ap = argparse.ArgumentParser(description="Count neurons and ganglia from a tif image.")
+ap.add_argument('tif_path',type=str,help="Path (relative or absolute) to target image")
 ap.add_argument('-o', '--out_dir', type=str, help="Root directory where output should be stored, default is base dir of the input image")
 # ap.add_argument('-c', '--c_number', default=0, type=int, help="indexes (start at 0) of the channel contains the marker of interest. Default = 0.")
 
@@ -29,14 +29,14 @@ args = ap.parse_args()
 
 # if no out_dir is given, take the base dir of the input image
 if args.out_dir is None:
-    args.out_dir = os.path.dirname(args.tiff_path)
+    args.out_dir = os.path.dirname(args.tif_path)
 
 # if not args.maxIP and args.z_number == None:
 #     ap.error('The following arguments are required when not performing maxIP: --z_number')
 # if args.z_number and args.maxIP:
 #     ap.error('You cannot both take a maxIP and extract a single z-stack')
 
-filename = args.tiff_path
+filename = args.tif_path
 filename_base = os.path.splitext(os.path.basename(filename))[0]
 
 # make output_dir if it doesn't exist
@@ -45,7 +45,7 @@ os.makedirs(args.out_dir, exist_ok=True)
 ### Analyzing
 
 neurons = io.imread(filename)
-meta = {"Name": os.path.splitext(f"{filename_base}.tiff")[0]}
+meta = {"Name": os.path.splitext(f"{filename_base}.tif")[0]}
 directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
 
 
