@@ -161,7 +161,7 @@ if not args.tile_size:
     neurons, meta, directory = readCOUNTENimage(extracted_filename)
     processCOUNTENdata(neurons,meta,directory)
 else:
-    extracted_filename_base = os.path.splitext(os.path.basename(extracted_filename))[0]
+    extracted_filename_base = os.path.splitext(extracted_filename)[0]
     nr_images = globalTilingFunc(extracted_filename, args.tile_size[0], args.tile_size[1], image_prefix =  extracted_filename_base)
     for i in range(1, nr_images + 1):
         neurons, meta, directory = readCOUNTENimage(f"{extracted_filename_base}_tile{i}.tif")
