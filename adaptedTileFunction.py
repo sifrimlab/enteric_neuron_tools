@@ -44,7 +44,6 @@ def tileImage(image, ydiv: int, xdiv: int, image_prefix: str="test"):
     return len(final_split)
 
 def globalTilingFunc(glob_pattern, target_tile_width:str, target_tile_height:str, image_prefix: str):
-    ic(glob_pattern)
     target_full_rows, target_full_columns, ydiv, xdiv = calculateOptimalLargestResolution(glob_pattern, target_tile_width, target_tile_height)
     padded_imgs = {}
     for image_path in glob.glob(glob_pattern):
