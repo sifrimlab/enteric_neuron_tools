@@ -32,9 +32,18 @@ ap.add_argument('-z', '--z_number', default=None, type=int, help="index (start a
 ap.add_argument('-t', '--tile_size', default=None, type=int, nargs=2, help="Tuple representing targetted tile size (X-Y). Example: `-t 2000 2000`. Default is no tiling behaviour")
 
 args = ap.parse_args()
+
+filename = args.file_path
+if filename.lower().endswith("czi"):
+    image_type = "czi"
+elif filename.lower().endswith(("tif", "tiff")):
+    image_type = "tif"
+
+filename_base = os.path.splitext(os.path.basename(filename))[0]
+
 # if no out_dir is given, take the base dir of the input image
 if args.out_dir is None:
-    args.out_dir = os.path.dirname(args.file_path)
+    args.out_dir =os.path.join(os.path.dirname(args.file_path), f"processed_{filename_base}/")
 
 # make output_dir if it doesn't exist
 os.makedirs(args.out_dir, exist_ok=True)
@@ -62,13 +71,7 @@ def getMostInFocusImage(image_array_list):
 
 
 
-filename = args.file_path
-if filename.lower().endswith("czi"):
-    image_type = "czi"
-elif filename.lower().endswith(("tif", "tiff")):
-    image_type = "tif"
 
-filename_base = os.path.splitext(os.path.basename(filename))[0]
 
 
 def maxIPstack(img_list):
@@ -110,7 +113,7 @@ if image_type == "czi":
 elif image_type == "tif":
     image = io.imread(filename)
     img_extracted = image[:,:,args.c_number]
-    args.z_number = 0
+    args.z_number = 0 # Done to makeextracted filename be reasonable
 
 
 
