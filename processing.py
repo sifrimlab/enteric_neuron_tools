@@ -60,7 +60,12 @@ def subsample(img):
 
 # You added output_filename to save the created image
 def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot = True, save=False):
-    grayscale = rgb2gray(img)
+    # If the image is already single channel, this will throw an error
+    try:
+        grayscale = rgb2gray(img)
+    except ValueError:
+        grayscale = img
+
     gauss = gaussian(grayscale, sigma=sigma)
     img_subsampled = subsample(gauss)
 

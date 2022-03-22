@@ -180,11 +180,11 @@ def runApp():
             img_extracted = image_slice
 
 
-        io.imsave(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff"), img_extracted)
+        io.imsave(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif"), img_extracted)
 
         ### Analyzing
-        neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff"))
-        meta = {"Name": os.path.splitext(f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tiff")[0]}
+        neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif"))
+        meta = {"Name": os.path.splitext(f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif")[0]}
         directory = os.path.join(str(out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
 
         if os.path.exists(directory):
