@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import custom_io, analysis, processing
 from skimage import io
-from tiling import completeTiling
-from icecream import ic
+from pyxelperfect.tiling import tile
 
 # First extract the correct image from the tif stack
 
@@ -60,7 +59,9 @@ else:
     os.makedirs(directory, exist_ok=True)
 
 if any(dim > 2000 for dim in neurons.shape):
-    tiling_name_list = completeTiling(neurons, filename_base, output_dir=args.out_dir)
+    xdiv, ydiv = tile(filename, 5000, 5000,out_dir=args.out_dir)
+    n_tiles =int(xdiv*ydiv)
+    tiling_name_list = [f"{os.path.join(args.out_dir, os.path.splitext(os.path.basename(filename))[0])}_tile{i}.tif" for i in range(1, n_tiles + 1)]
 else:
     tiling_name_list = [filename]
 
