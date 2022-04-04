@@ -1,16 +1,17 @@
 import pandas as pd
 from sklearn import tree
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix
+from sklearn import metrics
 import seaborn as sns
+import pickle
 import matplotlib.pyplot as plt
 
 
 # Load data
-train_dataset = pd.read_csv("./self_labeled_combined.csv",index_col=0,delimiter=',')
+train_dataset = pd.read_csv("./data/self_labeled_train_combined.csv",index_col=0,delimiter=',')
 train_dataset = train_dataset.drop(["Shape", "Dtype range", "Actual range", "Dtype"], axis=1)
 
-test_dataset = pd.read_csv("./them_labeled_combined.csv",index_col=1,delimiter=',')
+test_dataset = pd.read_csv("./data/self_labeled_test_combined.csv",index_col=0,delimiter=',')
 test_dataset = test_dataset.drop(["Shape", "Dtype range", "Actual range", "Dtype"], axis=1)
 
 clusters = train_dataset["mode"]
@@ -31,24 +32,28 @@ y = clusters
 clf = tree.DecisionTreeClassifier()
 clf = clf.fit(X, y)
 
-preds = clf.predict(test_dataset)
+y_pred = clf.predict(test_dataset)
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
 
-cm = confusion_matrix(y_test, preds, labels=["good", "bad"])
-ax= plt.subplot()
-sns.heatmap(cm, annot=True, fmt='g', ax=ax);  #annot=True to annotate cells, ftm='g' to disable scientific notation
+with open("tree_model.tif") as f:
+    save = pickle.dump(clf, f)
 
-# labels, title and ticks
-ax.set_xlabel('Predicted labels');ax.set_ylabel('True labels'); 
-ax.set_title('Confusion Matrix'); 
-ax.xaxis.set_ticklabels(['Good', 'Bad']); ax.yaxis.set_ticklabels(['Good', 'Bad']);
+# cm = metrics.confusion_matrix(y_test, preds, labels=["good", "bad"])
+# ax= plt.subplot()
+# sns.heatmap(cm, annot=True, fmt='g', ax=ax);  #annot=True to annotate cells, ftm='g' to disable scientific notation
 
-plt.show()
+# # labels, title and ticks
+# ax.set_xlabel('Predicted labels');ax.set_ylabel('True labels'); 
+# ax.set_title('Confusion Matrix'); 
+# ax.xaxis.set_ticklabels(['Good', 'Bad']); ax.yaxis.set_ticklabels(['Good', 'Bad']);
 
-
-# r = tree.export_text(clf, feature_names = list(dataset.columns))
-# print(r)
-
-# tree.plot_tree(clf, feature_names=train_dataset.columns, fontsize=10)
 # plt.show()
+
+
+# # r = tree.export_text(clf, feature_names = list(dataset.columns))
+# # print(r)
+
+# # tree.plot_tree(clf, feature_names=train_dataset.columns, fontsize=10)
+# # plt.show()
 
 
