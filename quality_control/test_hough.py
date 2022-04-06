@@ -1,5 +1,7 @@
 import os
 import numpy as np
+from tqdm import tqdm
+from shutil import copyfile
 from skimage import io
 from skimage import data, color
 from skimage.transform import hough_circle, hough_circle_peaks, hough_line, hough_line_peaks
@@ -9,6 +11,7 @@ from skimage.util import img_as_ubyte
 import matplotlib.pyplot as plt
 from pyxelperfect.manipulate import automaticBrightnessAndContrast
 from glob import glob
+from joblib import Parallel, delayed
 
 """
     Idea is as follows: either i make the min distances very large to make sure the good images only get one peak, or allow for like 3 to 5 peaks and write
@@ -45,11 +48,9 @@ def plotStraightLine(edge_image, normal_image):
 
 def exactlyOneLine(edge_image):
     # tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
-    tested_angles = [np.pi, np.pi / 2]
+    tested_angles = np.array([np.pi, np.pi / 2])
     h, theta, d = hough_line(edge_image, theta=tested_angles)
     accums, angles, dists =  hough_line_peaks(h, theta, d)
-    # if not (len(accums) == len(angles) == len(dists) ):
-    #     print(len(accums) , len(angles) , len(dists) )
     return len(accums) == 1
 
 def exacltyOneCircle(edge_image):
@@ -75,22 +76,31 @@ def plotHoughCircles(edge_image):
     axs[2].set_title(f"{len(radii)}")
     plt.show()
 
-# for i, img in enumerate(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary/*.tif")):
-#     image = io.imread(img)
-    # edge_image = canny(image, sigma=0)
-    # # if exacltyOneCircle(edge_image):
-    # if not exactlyOneLine(edge_image):
-    #     io.imsave(f"./good/{os.path.basename(img)}", image)
-    # else:
-    #     io.imsave(f"./bad/{os.path.basename(img)}", image)
-    # if i > 200:
-    #     break
-
-for i, img in enumerate(glob("./bad/*")): 
-# for i, img in enumerate(glob("./good/*")): 
+already_done_basename_list =[os.path.basename(file) for file in glob(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/*/*.tif")]
+def fix_stuff(img):
+    if os.path.basename(img) in already_done_basename_list:
+        return None
     image = io.imread(img)
     edge_image = canny(image, sigma=0)
-    plotStraightLine(edge_image, image)
-    # plotHoughCircles(edge_image)
-    if i > 15:
-        break
+    # if exacltyOneCircle(edge_image):
+    if not exactlyOneLine(edge_image):
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/good/{os.path.basename(img)}" )
+        return "good"
+        # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/good/{os.path.basename(img)}", image)
+    else:
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}" )
+        return "bad"
+            # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}", image)
+
+results = Parallel(n_jobs=12)(delayed(fix_stuff)(img) for img in tqdm(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary/*.tif")))
+
+
+
+# for i, img in enumerate(glob("./bad/*")): 
+# # for i, img in enumerate(glob("./good/*")): 
+#     image = io.imread(img)
+#     edge_image = canny(image, sigma=0)
+#     plotStraightLine(edge_image, image)
+#     # plotHoughCircles(edge_image)
+#     if i > 15:
+#         break
