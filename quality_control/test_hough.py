@@ -16,7 +16,8 @@ from glob import glob
     --> update: 
 """
 def plotStraightLine(edge_image, normal_image):
-    tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+    # tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+    tested_angles = np.array([np.pi, np.pi / 2])
     h, theta, d = hough_line(edge_image, theta=tested_angles)
 
     # Generating figure 1
@@ -43,7 +44,8 @@ def plotStraightLine(edge_image, normal_image):
     plt.show()
 
 def exactlyOneLine(edge_image):
-    tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+    # tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
+    tested_angles = [np.pi, np.pi / 2]
     h, theta, d = hough_line(edge_image, theta=tested_angles)
     accums, angles, dists =  hough_line_peaks(h, theta, d)
     # if not (len(accums) == len(angles) == len(dists) ):
@@ -75,20 +77,20 @@ def plotHoughCircles(edge_image):
 
 # for i, img in enumerate(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary/*.tif")):
 #     image = io.imread(img)
-#     edge_image = canny(image, sigma=0)
-#     # if exacltyOneCircle(edge_image):
-#     if not exactlyOneLine(edge_image):
-#         io.imsave(f"./good/{os.path.basename(img)}", image)
-#     else:
-#         io.imsave(f"./bad/{os.path.basename(img)}", image)
-#     if i > 200:
-#         break
-
-# for i, img in enumerate(glob("./bad/*")): 
-# for i, img in enumerate(glob("./good/*")): 
-    # image = io.imread(img)
     # edge_image = canny(image, sigma=0)
-    # plotStraightLine(edge_image, image)
-    # plotHoughCircles(edge_image)
-    # if i > 15:
+    # # if exacltyOneCircle(edge_image):
+    # if not exactlyOneLine(edge_image):
+    #     io.imsave(f"./good/{os.path.basename(img)}", image)
+    # else:
+    #     io.imsave(f"./bad/{os.path.basename(img)}", image)
+    # if i > 200:
     #     break
+
+for i, img in enumerate(glob("./bad/*")): 
+# for i, img in enumerate(glob("./good/*")): 
+    image = io.imread(img)
+    edge_image = canny(image, sigma=0)
+    plotStraightLine(edge_image, image)
+    # plotHoughCircles(edge_image)
+    if i > 15:
+        break
