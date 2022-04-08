@@ -76,7 +76,7 @@ def plotHoughCircles(edge_image):
     axs[2].set_title(f"{len(radii)}")
     plt.show()
 
-already_done_basename_list =[os.path.basename(file) for file in glob(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/*/*.tif")]
+already_done_basename_list =[os.path.basename(file) for file in glob(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/LiverSample_line_qcd/*/*.tif")]
 def fix_stuff(img):
     if os.path.basename(img) in already_done_basename_list:
         return None
@@ -84,15 +84,15 @@ def fix_stuff(img):
     edge_image = canny(image, sigma=0)
     # if exacltyOneCircle(edge_image):
     if not exactlyOneLine(edge_image):
-        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/good/{os.path.basename(img)}" )
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/LiverSample_line_qcd/good/{os.path.basename(img)}" )
         return "good"
         # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/good/{os.path.basename(img)}", image)
     else:
-        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}" )
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/LiverSample_line_qcd/bad/{os.path.basename(img)}" )
         return "bad"
             # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}", image)
 
-results = Parallel(n_jobs=12)(delayed(fix_stuff)(img) for img in tqdm(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary/*.tif")))
+results = Parallel(n_jobs=16)(delayed(fix_stuff)(img) for img in tqdm(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/LiverSample/*.tif")))
 
 
 
