@@ -123,9 +123,9 @@ def fix_stuff(img):
         image = io.imread(img)
     except: 
         return None
-    edge_image = sobel(image)
-    sobel_image = img_as_ubyte(edge_image)
-    if exacltyOneCircle(edge_image):
+    sobel_image = sobel(image)
+    sobel_image = img_as_ubyte(sobel_image)
+    if exacltyOneCircle(sobel_image):
     # if not exactlyOneLine(edge_image):
         copyfile(img,f"/media/amenra/single_nuclei/LiverSample_line_qcd/circle_qc/good/{os.path.basename(img)}" )
         # return "good"
