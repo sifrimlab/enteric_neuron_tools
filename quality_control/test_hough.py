@@ -1,28 +1,21 @@
 import os
 import numpy as np
-import itertools
 import random
 from tqdm import tqdm
 from shutil import copyfile
 from skimage import io
 from skimage import data, color
-from skimage.transform import hough_circle, hough_ellipse, hough_circle_peaks, hough_line, hough_line_peaks
+from skimage.transform import hough_circle, , hough_circle_peaks, hough_line, hough_line_peaks
 from skimage.feature import canny
-from skimage.filters import sobel, gaussian
-from skimage.draw import circle_perimeter, ellipse_perimeter
-from skimage.util import img_as_ubyte, img_as_bool
+from skimage.filters import sobel
+from skimage.draw import circle_perimeter
+from skimage.util import img_as_ubyte
 import matplotlib.pyplot as plt
 from pyxelperfect.manipulate import automaticBrightnessAndContrast
 from glob import glob
 from joblib import Parallel, delayed
 
-"""
-    Idea is as follows: either i make the min distances very large to make sure the good images only get one peak, or allow for like 3 to 5 peaks and write
-    some code to check if the two circles overlap
-    --> update: 
-"""
 def plotStraightLine(edge_image, normal_image):
-    # tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
     tested_angles = np.array([np.pi, np.pi / 2])
     h, theta, d = hough_line(edge_image, theta=tested_angles)
 
@@ -50,7 +43,6 @@ def plotStraightLine(edge_image, normal_image):
     plt.show()
 
 def exactlyOneLine(edge_image):
-    # tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=False)
     tested_angles = np.array([np.pi, np.pi / 2])
     h, theta, d = hough_line(edge_image, theta=tested_angles)
     accums, angles, dists =  hough_line_peaks(h, theta, d)
@@ -82,40 +74,6 @@ def plotHoughCircles(edge_image):
     axs[2].set_title(f"{len(radii)}")
     plt.show()
 
-def plotHoughEllipses(edge_image):
-    # The accuracy corresponds to the bin size of a major axis.
-    # The value is chosen in order to get a single high accumulator.
-    # The threshold eliminates low accumulators
-    result = hough_ellipse(edge_image, accuracy=20, threshold=250,
-                           min_size=100, max_size=120)
-    result.sort(order='accumulator')
-
-    # Estimated parameters for the ellipse
-    best = list(result[-1])
-    yc, xc, a, b = [int(round(x)) for x in best[1:5]]
-    orientation = best[5]
-
-    # Draw the ellipse on the original image
-    cy, cx = ellipse_perimeter(yc, xc, a, b, orientation)
-    image_rgb[cy, cx] = (0, 0, 255)
-    # Draw the edge (white) and the resulting ellipse (red)
-    edges = color.gray2rgb(img_as_ubyte(edges))
-    edges[cy, cx] = (250, 0, 0)
-
-    fig2, axs = plt.subplots(ncols=3, nrows=1, sharex=True,
-                                    sharey=True)
-
-    axs[0].set_title('Original picture')
-    axs[0].imshow(image)
-
-    axs[1].set_title('edge image')
-    axs[1].imshow(edge_image)
-
-    axs[2].set_title(f"{len(result[0])}")
-    axs[2].imshow(edges)
-
-    plt.show()
-already_done_basename_list =[os.path.basename(file) for file in glob("/media/amenra/single_nuclei/LiverSample_line_qcd/circle_qc/*/*.tif")]
 def fix_stuff(img):
     if os.path.basename(img) in already_done_basename_list:
         return None
@@ -136,50 +94,3 @@ def fix_stuff(img):
             # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}", image)
 
 Parallel(n_jobs=16)(delayed(fix_stuff)(img) for img in tqdm(glob("/media/amenra/single_nuclei/LiverSample_line_qcd/good/*.tif")))
-# for img in tqdm(glob("/media/amenra/single_nuclei/LiverSample_line_qcd/good/*.tif")):
-#     fix_stuff(img)
-
-# goodish_imgs = glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/LiverSample_line_qcd/good/*")
-# random.seed(12)
-# random.shuffle(goodish_imgs)
-
-
-# for i, img in enumerate(goodish_imgs): 
-#     image = io.imread(img)
-    # sobel_image = sobel(image)
-    # sobel_image = img_as_ubyte(sobel_image)
-    # sobel_image = gaussian(sobel_image, sigma=3)
-
-    # plotHoughCircles(sobel_image)
-    # plt.show()
-    # if i > 5:
-    #     break
-
-
-# output_list = list(itertools.product(range(0,255,1), range(0,255,1)))
-# output_list = [(el[0], el[1]) for el in output_list if el[0] < el[1] ]
-
-# # highs =list(np.arange(1,255, 1))
-# # doubled_highs = highs.copy()
-
-# # new_low_value = 0
-# # new_high_value = 1
-# # lows = [new_low_value for i in range(len(highs))]
-# # for i in range(len(highs)):
-# #     lows.append(new_low_value)
-# #     if 
-# #     new_low_value += 1
-# #     doubled_highs.append(new_high_value)
-# #     if new_low_value >= new_high_value:
-# #         new_high_value += 1
-    
-
-# slideshow = np.zeros((149,149,len(output_list)))
-
-# for i, (low, high) in tqdm(enumerate(output_list)):
-#     print(low, high)
-#     edge_image = canny(image, low_threshold=low, high_threshold=high, sigma=0)
-#     slideshow[:,:, i] = edge_image
-# # # plotStraightLine(edge_image, image)
-# #     # plotHoughCircles(edge_image)
-# io.imsave("slideshow.tif", slideshow)
