@@ -5,7 +5,6 @@ from skimage import io
 from typing import List
 from tifffile import imsave
 from skimage.io import imread_collection, imsave, imread
-from icecream import ic
 
 def calculateOptimalLargestResolution(images: str, target_tile_width: int, target_tile_height: int) -> List[int]: 
     images_array = np.array(io.ImageCollection(images))

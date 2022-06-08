@@ -3,7 +3,6 @@ import os
 import time
 import argparse
 import numpy as np
-import importlib.util # This is to manually import the scripts to make sure it's all correct
 import matplotlib.pyplot as plt
 import numpy as np
 import aicspylibczi
@@ -11,7 +10,6 @@ import custom_io, analysis, processing
 from skimage import io
 from skimage.filters import laplace
 from adaptedTileFunction import globalTilingFunc
-from icecream import ic
 
 
 # First extract the correct image from the czi stack
@@ -70,10 +68,6 @@ def getMostInFocusImage(image_array_list):
     return image_array_list[index], index
 
 
-
-
-
-
 def maxIPstack(img_list):
     parsed_list = img_list
     parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
@@ -117,14 +111,14 @@ elif image_type == "tif":
 
 
 
-extracted_filename =os.path.join(args.out_dir, f"{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tif")
-io.imsave(extracted_filename, img_extracted, check_contrast=False)
-print(f"Extracted to {extracted_filename}")
+# extracted_filename =os.path.join(args.out_dir, f"{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tif")
+# io.imsave(extracted_filename, img_extracted, check_contrast=False)
+# print(f"Extracted to {extracted_filename}")
 
 
 # Quick and dirty function to create the neurons, meta and directory variables used by the rest of the COUNTEN script
-def readCOUNTENimage(filename: str):
-    neurons = io.imread(filename)
+def readCOUNTENimage(filename: str, neurons: np.array):
+    # neurons = io.imread(filename)
     meta = {"Name": os.path.basename(os.path.splitext(filename)[0])}
     directory = os.path.join(str(args.out_dir), f"result_{os.path.splitext(meta['Name'])[0]}")
     return neurons, meta, directory
@@ -161,8 +155,11 @@ def processCOUNTENdata(neurons, meta, directory):
     _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
 
 if not args.tile_size:
-    neurons, meta, directory = readCOUNTENimage(extracted_filename)
+    neurons, meta, directory = readCOUNTENimage(args.file_path, img_extracted)
     processCOUNTENdata(neurons,meta,directory)
+    extracted_filename =os.path.join(directory, f"{filename_base}_c{args.c_number}_{'maxIP' if args.maxIP else f'z{args.z_number}'}.tif")
+    io.imsave(extracted_filename, img_extracted, check_contrast=False)
+    print(f"Extracted to {extracted_filename}")
 else:
     extracted_filename_base = os.path.splitext(extracted_filename)[0]
     nr_images = globalTilingFunc(extracted_filename, args.tile_size[0], args.tile_size[1], image_prefix =  extracted_filename_base)

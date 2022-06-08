@@ -51,8 +51,9 @@ def create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=Fa
         df.loc[0,"Nbr of neurons"] = len(local_maxi)
         
         extragang = df.loc[0,"Nbr of neurons"] - intergang
-        df = df.append({'ganglion' : "intra-ganglionic total", 'Nbr of neurons' : intergang}, ignore_index=True)
-        df = df.append({'ganglion' : "extra-ganglionic total", 'Nbr of neurons' : extragang}, ignore_index=True)
+        df = pd.concat([df, pd.DataFrame.from_records([{'ganglion' : "intra-ganglionic total", 'Nbr of neurons' : intergang}])])
+        df = pd.concat([df, pd.DataFrame.from_records([{'ganglion' : "extra-ganglionic total", 'Nbr of neurons' : extragang}])])
+        # df = df.append({'ganglion' : "extra-ganglionic total", 'Nbr of neurons' : extragang}, ignore_index=True)
     
     if save == True:
         try:

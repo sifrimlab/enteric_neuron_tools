@@ -18,7 +18,6 @@ from skimage import filters
 from skimage.transform import resize 
 from skimage.color import rgb2gray
 from scipy.ndimage.measurements import center_of_mass, label
-from icecream import ic
 
 
 def background_correct(img):
@@ -72,9 +71,13 @@ def wide_clusters(img, sigma, pixel_density, min_samples,meta, directory, plot =
     thresh =filters.threshold_otsu(img_subsampled)
 
 
-    is_peak = feature.peak_local_max(gauss, min_distance = int(2.5 * pixel_density), threshold_abs=thresh +
+    # Used to be without the tmp and masking, but skimage has removed the indices 
+    tmp_is_peak = feature.peak_local_max(gauss, min_distance = int(2.5 * pixel_density), threshold_abs=thresh +
                                      (10*thresh)/100,
-                                      exclude_border=False, indices=False)
+                                      exclude_border=False)
+    is_peak = np.zeros_like(gauss, dtype=bool)
+    is_peak[tuple(tmp_is_peak.T)] = True
+
     plabels = label(is_peak)[0]
     merged_peaks = center_of_mass(is_peak, plabels, range(1, np.max(plabels)+1))
     local_maxi = np.array(merged_peaks)

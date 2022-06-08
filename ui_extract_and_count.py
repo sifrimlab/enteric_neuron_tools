@@ -123,9 +123,12 @@ def runApp():
             statusLabel.config(text="No output directory given.", fg="red")
 
         c_number = int(channelSpinBox.get())
-        z_number = int(zstackSpinBox.get())
+        try:
+            z_number = int(zstackSpinBox.get())
+        except:
+            pass
 
-        extract_most_in_focus = bool(not maxIP and z_number is -1)
+        extract_most_in_focus = bool(not maxIP and z_number == -1)
         def getMostInFocusImage(image_array_list):
             stdev_list = []
             for image in image_array_list:
@@ -149,7 +152,6 @@ def runApp():
         z_min, z_max = czi.get_dims_shape()[0]['Z']
         z_numbers = range(z_min,z_max)
         if maxIP:
-
             def maxIPstack(img_list):
                 parsed_list = img_list
                 parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
