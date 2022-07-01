@@ -1,7 +1,7 @@
-name: /home/nacho/Documents/enteric_neurons/enteric_neurons_env
+name: ent_neuron_env
 channels:
-  - conda-forge
   - anaconda
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -72,5 +72,7 @@ dependencies:
   - zstd=1.4.4=h0b5b093_3
   - pip:
     - aicspylibczi==3.0.3
+    - pandas==1.4.3
+    - pytz==2022.1
     - tk==0.1.0
-prefix: /home/nacho/Documents/enteric_neurons/enteric_neurons_env
+prefix: /home/david/miniconda3/envs/ent_neuron_env
