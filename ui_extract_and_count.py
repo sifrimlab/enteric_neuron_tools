@@ -3,6 +3,7 @@ import os
 import time
 import analysis
 import argparse
+import math
 import custom_io
 import processing
 import numpy as np
@@ -10,12 +11,13 @@ import aicspylibczi
 import tkinter as Tk
 from skimage import io
 from skimage.filters import laplace
-import matplotlib.pyplot as plt
-from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.filedialog import askopenfilename, askdirectory, askopenfilenames
+from tkinter.ttk import Progressbar
 
 
 # global bool because tkinter commands suck
 maxIP = True
+progress_max = 100
 
 def runApp():
     window = Tk.Tk()
@@ -25,17 +27,28 @@ def runApp():
 
     def openImage():
         global czi_path
-        czi_path = askopenfilename(title="Select czi file",filetypes=[("image", ".czi")])
-        fileLabel.config(text=czi_path)
-        fileButton.config(fg="green")
+        czi_path = askopenfilenames(title="Select czi file(s)",filetypes=[("image", ".czi")])
+        if len(czi_path) > 1:
+            fileLabel.config(text=f"{czi_path[0]}, ...")
+        else:
+            fileLabel.config(text=f"{czi_path[0]}")
+
+
+        if czi_path:
+            fileButton.config(fg="green")
+        else:
+            fileButton.config(fg="red")
+
     def openDirectory():
         global out_dir
         out_dir = askdirectory()
         outputDirLabel.config(text=out_dir)
-        outputDirButton.config(fg="green")
+        if out_dir:
+            outputDirButton.config(fg="green")
+        else:
+            outputDirButton.config(fg="red")
 
-
-    fileButton = Tk.Button(window,fg="red", text="Select your czi file: ", command=openImage)
+    fileButton = Tk.Button(window,fg="red", text="Select your czi file(s): ", command=openImage)
     fileLabel=Tk.Label(window, text="No file selected")
     fileButton.grid(row=0, sticky="W")
     fileLabel.grid(row=0, column=1, sticky="E")
@@ -50,11 +63,11 @@ def runApp():
     # Fill in the channel number
     channelLabel=Tk.Label(window,text="Channel index of marker of interest:")
     channelLabel.grid(row=2, sticky="W")
-    channelSpinBox = Tk.Spinbox(from_=-1,to=4)
+    channelSpinBox = Tk.Spinbox(from_=0,to=4)
     # channelSpinBox.pack()
     channelSpinBox.grid(row=2, column=1, sticky="E")
 
-    maxIPLabel = Tk.Label(window,text="take maximum intensity projections:")
+    maxIPLabel = Tk.Label(window,text="Take maximum intensity projections:")
     maxIPLabel.grid(row=6, sticky="W")
 
     # Check if maxIP needs to be taken, if not create an extra label to fill in the channel
@@ -106,15 +119,18 @@ def runApp():
     minSamplesEntry.insert(0, 2)
 
     def extract_and_count():
+        pb1 = Progressbar(window, orient=Tk.HORIZONTAL, length=400, mode='determinate')
+        txt = Tk.Label(window,text = '0%',bg = '#345',fg = '#fff')
+        pb1.grid(row=11, column=1, sticky="W")
+        txt.grid(row=11, column=2, sticky="W")
+
         statusLabel.config(text="")
         # rename variable cause I'm too lazy to refactor code
         try:
-            filename = czi_path
+            files = czi_path
         except NameError:
-            statusLabel.config(text="No input file given.", fg="red")
+            statusLabel.config(text="No input file(s) given.", fg="red")
 
-
-        filename_base = os.path.splitext(os.path.basename(filename))[0]
 
         # make out_dir if it doesn't exist
         try:
@@ -129,6 +145,7 @@ def runApp():
             pass
 
         extract_most_in_focus = bool(not maxIP and z_number == -1)
+
         def getMostInFocusImage(image_array_list):
             stdev_list = []
             for image in image_array_list:
@@ -145,78 +162,94 @@ def runApp():
             print("Extracted most in focus z-stack is index {index}")
             return image_array_list[index], index
 
+        n_files = len(files)
+        increment = 100 / n_files
+        for filename in files:
+
+            filename_base = os.path.splitext(os.path.basename(filename))[0]
 
 
-        czi = aicspylibczi.CziFile(filename)
+            czi = aicspylibczi.CziFile(filename)
 
-        z_min, z_max = czi.get_dims_shape()[0]['Z']
-        z_numbers = range(z_min,z_max)
-        if maxIP:
-            def maxIPstack(img_list):
-                parsed_list = img_list
-                parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
-                # now all elements in parsed_list are ndarrays
-                maxIP_image = np.maximum.reduce(parsed_list)
-                return maxIP_image
+            z_min, z_max = czi.get_dims_shape()[0]['Z']
+            z_numbers = range(z_min,z_max)
+            if maxIP:
+                def maxIPstack(img_list):
+                    parsed_list = img_list
+                    parsed_list = [img if isinstance(img, np.ndarray) else io.imread(img) for img in img_list]
+                    # now all elements in parsed_list are ndarrays
+                    maxIP_image = np.maximum.reduce(parsed_list)
+                    return maxIP_image
 
-            image_list = []
-            for z_num in z_numbers:
-                image_slice, _ = czi.read_image(C=c_number, Z=z_num)
-                image_slice = image_slice[0,0,0,0,0,:,:]
-                image_list.append(image_slice)
-            img_extracted = maxIPstack(image_list)
-        elif extract_most_in_focus:
                 image_list = []
                 for z_num in z_numbers:
                     image_slice, _ = czi.read_image(C=c_number, Z=z_num)
                     image_slice = image_slice[0,0,0,0,0,:,:]
                     image_list.append(image_slice)
-                img_extracted, z_number =  getMostInFocusImage(image_list)
+                img_extracted = maxIPstack(image_list)
+            elif extract_most_in_focus:
+                    image_list = []
+                    for z_num in z_numbers:
+                        image_slice, _ = czi.read_image(C=c_number, Z=z_num)
+                        image_slice = image_slice[0,0,0,0,0,:,:]
+                        image_list.append(image_slice)
+                    img_extracted, z_number =  getMostInFocusImage(image_list)
 
-        else:
-            try:
-                image_slice, _ = czi.read_image(C=c_number, Z=z_number)
-            except ValueError:
-                statusLabel.config(text="Invalid argument in one of the numerical parameters", fg="red")
-            image_slice = image_slice[0,0,0,0,0,:,:]
-            img_extracted = image_slice
+            else:
+                try:
+                    image_slice, _ = czi.read_image(C=c_number, Z=z_number)
+                except ValueError:
+                    statusLabel.config(text="Invalid argument in one of the numerical parameters", fg="red")
+                image_slice = image_slice[0,0,0,0,0,:,:]
+                img_extracted = image_slice
 
 
-        io.imsave(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif"), img_extracted)
+            extracted_base_path= f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif"
 
-        ### Analyzing
-        neurons = io.imread(os.path.join(out_dir,f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif"))
-        meta = {"Name": os.path.splitext(f"{filename_base}_c{c_number}_{'maxIP' if maxIP else f'z{z_number}'}.tif")[0]}
-        directory = os.path.join(str(out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
+            meta = {"Name": os.path.splitext(extracted_base_path)[0]}
 
-        if os.path.exists(directory):
-            expand = 0
-            while True:
-                expand += 1
-                new_directory = directory+"_"+str(expand)
-                if os.path.exists(new_directory):
-                    continue
-                else:
-                    directory = new_directory
-                    os.makedirs(directory, exist_ok=True)
-                    break
-        else:
-            os.makedirs(directory, exist_ok=True)
+            directory = os.path.join(str(out_dir), f"result_{os.path.splitext(meta['Name'])[0]}_{time.strftime('%m'+'_'+'%d'+'_'+'%Y')}")
 
-        # Actually process the image and segmetn
-        local_maxi, labels, gauss = processing.wide_clusters(neurons,
-                                                             sigma=float(sigmaEntry.get()),
-                                                             pixel_density=float(pixelDensityEntry.get()),
-                                                             min_samples=int(minSamplesEntry.get()),
-                                                             meta=meta,
-                                                             directory=directory,
-                                                             save= True)
+            if os.path.exists(directory):
+                expand = 0
+                while True:
+                    expand += 1
+                    new_directory = directory+"_"+str(expand)
+                    if os.path.exists(new_directory):
+                        continue
+                    else:
+                        directory = new_directory
+                        os.makedirs(directory, exist_ok=True)
+                        break
+            else:
+                os.makedirs(directory, exist_ok=True)
 
-        ganglion_prop = processing.segmentation(gauss, local_maxi, labels, meta, directory, save = True)
 
-        # Save the dataframe
-        # Run dataframe function from module
-        _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
+            extracted_path = os.path.join(directory, extracted_base_path)
+            io.imsave(extracted_path, img_extracted, check_contrast=False)
+
+            ### Analyzing
+            neurons = img_extracted
+
+            # Actually process the image and segmetn
+            local_maxi, labels, gauss = processing.wide_clusters(neurons,
+                                                                 sigma=float(sigmaEntry.get()),
+                                                                 pixel_density=float(pixelDensityEntry.get()),
+                                                                 min_samples=int(minSamplesEntry.get()),
+                                                                 meta=meta,
+                                                                 directory=directory,
+                                                                 save= True)
+
+            ganglion_prop = processing.segmentation(gauss, local_maxi, labels, meta, directory, save = True)
+
+            # Save the dataframe
+            # Run dataframe function from module
+            _, _ = analysis.create_dataframe(ganglion_prop, labels, local_maxi, meta, directory, save=True)
+            window.update_idletasks()
+            pb1['value'] += increment
+            txt['text']=int(pb1['value']) ,'%'
+
+        txt['text']=100,'%'
         statusLabel.config(text="Counting succesful.", fg="green")
     # Button to close the application:
     def Close():
