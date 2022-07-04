@@ -50,7 +50,7 @@ pip install pyinstaller
 ```
 4) Create the executable using the following command:
 ```bash
-pyinstaller --onefile --noconsole --additional-hooks-dir=%cd% -n count_neurons ui_extract_and_count.py
+pyinstaller --onefile --noconsole --add-data .\imgs;. --additional-hooks-dir=%cd% -n count_neurons ui_extract_and_count.py
 ```
 
 
