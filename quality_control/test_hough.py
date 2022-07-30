@@ -5,13 +5,13 @@ from tqdm import tqdm
 from shutil import copyfile
 from skimage import io
 from skimage import data, color
-from skimage.transform import hough_circle, , hough_circle_peaks, hough_line, hough_line_peaks
+from skimage.transform import hough_circle, hough_circle_peaks, hough_line, hough_line_peaks
 from skimage.feature import canny
 from skimage.filters import sobel
 from skimage.draw import circle_perimeter
 from skimage.util import img_as_ubyte
 import matplotlib.pyplot as plt
-from pyxelperfect.manipulate import automaticBrightnessAndContrast
+# from pyxelperfect.manipulate import automaticBrightnessAndContrast
 from glob import glob
 from joblib import Parallel, delayed
 
@@ -74,6 +74,7 @@ def plotHoughCircles(edge_image):
     axs[2].set_title(f"{len(radii)}")
     plt.show()
 
+already_done_basename_list = glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/tool/SEP/datasets/colon/single_nuclei/line_qcd/*d/*.tif")
 def fix_stuff(img):
     if os.path.basename(img) in already_done_basename_list:
         return None
@@ -83,14 +84,19 @@ def fix_stuff(img):
         return None
     sobel_image = sobel(image)
     sobel_image = img_as_ubyte(sobel_image)
-    if exacltyOneCircle(sobel_image):
-    # if not exactlyOneLine(edge_image):
-        copyfile(img,f"/media/amenra/single_nuclei/LiverSample_line_qcd/circle_qc/good/{os.path.basename(img)}" )
-        # return "good"
+    # if exacltyOneCircle(sobel_image):
+    if not exactlyOneLine(sobel_image):
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/tool/SEP/datasets/colon/single_nuclei/line_qcd/good/{os.path.basename(img)}" )
+        return "good"
         # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/good/{os.path.basename(img)}", image)
     else:
-        copyfile(img,f"/media/amenra/single_nuclei/LiverSample_line_qcd/circle_qc/bad/{os.path.basename(img)}" )
-        # return "bad"
+        copyfile(img,f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/tool/SEP/datasets/colon/single_nuclei/line_qcd/bad/{os.path.basename(img)}" )
+        return "bad"
             # io.imsave(f"/home/david/.config/nnn/mounts/nacho@10.38.76.144/amenra/single_nuclei/brainimagelibrary_line_qcd/bad/{os.path.basename(img)}", image)
 
-Parallel(n_jobs=16)(delayed(fix_stuff)(img) for img in tqdm(glob("/media/amenra/single_nuclei/LiverSample_line_qcd/good/*.tif")))
+# if __name__ == '__main__':
+#     file_list = glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/tool/SEP/datasets/colon/single_nuclei/*")
+#     for file in subset_list:
+#         if file.endswith(".tif"):
+#             fix_stuff(file)
+Parallel(n_jobs=16)(delayed(fix_stuff)(img) for img in tqdm(glob("/home/david/.config/nnn/mounts/nacho@10.38.76.144/tool/SEP/datasets/colon/single_nuclei/*.tif")))
