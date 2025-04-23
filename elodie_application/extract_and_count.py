@@ -25,7 +25,7 @@ pixel_density = 3.2
 sigma = 7
 min_samples = 2
 
-tile_size = 2000
+tile_size = 2048
 
 # End input, start tiling of large image
 
